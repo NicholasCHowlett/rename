@@ -5,7 +5,7 @@
 #
 # Description: Renames multiple files all at once. Refer to user guide for more information.
 #
-# Usage: Refer user guide for more information.
+# Usage: Refer to user guide for more information.
 
 # get text to prepend from user then format text.
 read -p 'Select the text to prepend to each file: ' text
@@ -23,11 +23,13 @@ if [ $system != 'N' ] && [ $system != 'T' ]; then
   exit 1
 fi
 
-# backup current directory's files.
+# backup current directory's files if it doesn't already exist.
 dir=${PWD##*/}
 dirBackup="${dir}_backup"
-mkdir ../$dirBackup
-cp -r -p ./ ../$dirBackup
+if [ ! -d "../$dirBackup" ]; then
+  mkdir ../$dirBackup
+  cp -r -p ./ ../$dirBackup
+fi
 
 # compute total filesizes of both current and backup directories.
 firstDone=false
