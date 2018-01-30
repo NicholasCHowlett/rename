@@ -16,8 +16,8 @@ read -p 'Select N or T as renaming system to append to each file: ' systemRaw
 
 # TODO: get confirmation of system choice from user.
 
-# if user-provided system value doesn't match accepted value then notify user to start again.
-system=$(echo "$systemRaw" | tr '[:lower:]' '[:upper:]')
+# if user-provided system value doesn't match accepted value then notify user to start again. 
+system=$(echo "$systemRaw" | tr '[:lower:]' '[:upper:]') # https://stackoverflow.com/questions/11392189/
 if [ $system != 'N' ] && [ $system != 'T' ]; then
   echo "Invalid renaming system choice. Please run script again."
   exit 1
@@ -26,41 +26,41 @@ fi
 # backup current directory's files, excluding this script, if they don't already exist.
 dir=${PWD##*/}
 dirBackup="${dir}_backup"
+# get script filename then remove quotation marks from string
+thisFileName="$(basename \"$0\")"
+thisFileName="${thisFileName%\"}"
+thisFileName="${thisFileName#\"}"
 if [ ! -d "../$dirBackup" ]; then
   mkdir ../$dirBackup
   cp -r -p ./ ../$dirBackup
-  # get script filename then remove quotation marks from string
-  thisFileName="$(basename \"$0\")"
-  thisFileName="${thisFileName%\"}"
-  thisFileName="${thisFileName#\"}"
   rm -f ../$dirBackup/$thisFileName
-fi
 
-# compute total filesizes of both current and backup directories, while excluding this script.
-firstDone=false
-loop=0
-while [ $loop -le 1 ]; do
-  if [ "$firstDone" = true ]; then
-    cd ../$dirBackup
-    fsTotal=0
-  else
-    # filesize of this script
-    fsTotal=-$(stat -f %z $thisFileName)
-  fi
-  for i in *.*; do
-    fs=$(stat -f %z $i)
-    fsTotal=$(($fsTotal + $fs))
+  # compute total filesizes of both current and backup directories, while excluding this script, first time script is run.
+  firstDone=false
+  loop=0
+  while [ $loop -le 1 ]; do
+    if [ "$firstDone" = true ]; then
+      cd ../$dirBackup
+      fsTotal=0
+    else
+      # filesize of this script
+      fsTotal=-$(stat -f %z $thisFileName)
+    fi
+    for i in *.*; do
+      fs=$(stat -f %z $i)
+      fsTotal=$(($fsTotal + $fs))
+    done
+    fsTotalArray[$loop]=$fsTotal
+    firstDone=true
+    loop=$(($loop + 1))
   done
-  fsTotalArray[$loop]=$fsTotal
-  firstDone=true
-  loop=$(($loop + 1))
-done
-cd ../$dir
+  cd ../$dir
 
-# fail if filesizes of current and backup directories differ.
-if [ ${fsTotalArray[0]} -ne ${fsTotalArray[1]} ]; then
-  echo "Failed."
-  exit 1
+  # fail if filesizes of current and backup directories differ.
+  if [ ${fsTotalArray[0]} -ne ${fsTotalArray[1]} ]; then
+    echo "Failed."
+    exit 1
+  fi
 fi
 
 # system N: rename files by prepending with user input & appending number incrementally starting from the number 001.
