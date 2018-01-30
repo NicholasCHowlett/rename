@@ -23,22 +23,30 @@ if [ $system != 'N' ] && [ $system != 'T' ]; then
   exit 1
 fi
 
-# backup current directory's files if it doesn't already exist.
+# backup current directory's files, excluding this script, if they don't already exist.
 dir=${PWD##*/}
 dirBackup="${dir}_backup"
 if [ ! -d "../$dirBackup" ]; then
   mkdir ../$dirBackup
   cp -r -p ./ ../$dirBackup
+  # get script filename then remove quotation marks from string
+  thisFileName="$(basename \"$0\")"
+  thisFileName="${thisFileName%\"}"
+  thisFileName="${thisFileName#\"}"
+  rm -f ../$dirBackup/$thisFileName
 fi
 
-# compute total filesizes of both current and backup directories.
+# compute total filesizes of both current and backup directories, while excluding this script.
 firstDone=false
 loop=0
 while [ $loop -le 1 ]; do
   if [ "$firstDone" = true ]; then
     cd ../$dirBackup
+    fsTotal=0
+  else
+    # filesize of this script
+    fsTotal=-$(stat -f %z $thisFileName)
   fi
-  fsTotal=0
   for i in *.*; do
     fs=$(stat -f %z $i)
     fsTotal=$(($fsTotal + $fs))
@@ -47,18 +55,22 @@ while [ $loop -le 1 ]; do
   firstDone=true
   loop=$(($loop + 1))
 done
+cd ../$dir
 
-# abort if filesizes of current and backup directories differ.
+# fail if filesizes of current and backup directories differ.
 if [ ${fsTotalArray[0]} -ne ${fsTotalArray[1]} ]; then
-  echo Failed.
+  echo "Failed."
   exit 1
 fi
 
 # system N: rename files by prepending with user input & appending number incrementally starting from the number 001.
-cd ../$dir
 if [ $system = 'N' ]; then
   a=1
   for i in *.*; do
+    # don't include script file in renaming
+    if [ $i = $thisFileName ]; then
+      continue
+    fi
     num=$(printf "%03d" "$a")
     ext="${i##*.}"
     mv -i -- "$i" "${textModified}_$num.$ext"
@@ -67,6 +79,10 @@ if [ $system = 'N' ]; then
 # system T: rename files by prepending with user input & appending individual file's creation date/time. Note file's last modification date/time is used, which will be the same as its creation date/time if the file hasn't been edited).
 elif [ $system = 'T' ]; then
   for f in *.*; do
+    # don't include script file in renaming
+    if [ $f = $thisFileName ]; then
+      continue
+    fi
     ext="${f##*.}"
     mv -n "$f" "$(date -r "$f" +"${textModified}_%Y%m%d-%H%M%S").$ext"
   done
@@ -75,4 +91,4 @@ fi
 # TODO: verify renamed files not corrupted.
 
 # notify user that renaming was successful.
-echo Completed. Please check that renamed files have not been corrupted before deleting backup.
+echo "Completed. Please check that renamed files have not been corrupted before deleting backup."
