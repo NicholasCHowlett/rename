@@ -8,22 +8,20 @@
 # Usage: Refer to user guide for more information.
 
 # get text to prepend from user then format text.
-read -p 'Select the text to prepend to each file: ' text
+read -p 'Select text to add to all files: ' text
 textModified=${text//[ ]/_}
 
-# get renaming system from user.
-read -p 'Select N or T as renaming system to append to each file: ' systemRaw
+# get valid renaming system from user (otherwise keep asking until valid).
+read -p 'Select N or T as renaming system: ' systemRaw
+system=$(echo "$systemRaw" | tr '[:lower:]' '[:upper:]') # https://stackoverflow.com/questions/11392189/
+while [ $system != 'N' ] && [ $system != 'T' ]; do
+  read -p 'Invalid renaming system choice. Select N or T as renaming system: ' systemRaw
+  system=$(echo "$systemRaw" | tr '[:lower:]' '[:upper:]')
+done
 
 # TODO: get confirmation of system choice from user.
 
-# if user-provided system value doesn't match accepted value then notify user to start again. 
-system=$(echo "$systemRaw" | tr '[:lower:]' '[:upper:]') # https://stackoverflow.com/questions/11392189/
-if [ $system != 'N' ] && [ $system != 'T' ]; then
-  echo "Invalid renaming system choice. Please run script again."
-  exit 1
-fi
-
-# when using system N get a valid start number (otherwise keep asking until valid).
+# when using system N get a valid start number from user (otherwise keep asking until valid).
 if [ $system = 'N' ]; then
   declare -i startNumber
   read -p 'Select a starting number: ' startNumber
