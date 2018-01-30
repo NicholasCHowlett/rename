@@ -9,7 +9,7 @@
 
 # get text to prepend from user then format text.
 read -p 'Select the text to prepend to each file: ' text
-textModified=${text//[ -]/_}
+textModified=${text//[ ]/_}
 
 # get renaming system from user.
 read -p 'Select N or T as renaming system to append to each file: ' systemRaw
@@ -21,6 +21,15 @@ system=$(echo "$systemRaw" | tr '[:lower:]' '[:upper:]') # https://stackoverflow
 if [ $system != 'N' ] && [ $system != 'T' ]; then
   echo "Invalid renaming system choice. Please run script again."
   exit 1
+fi
+
+# when using system N get a valid start number (otherwise keep asking until valid).
+if [ $system = 'N' ]; then
+  declare -i startNumber
+  read -p 'Select a starting number: ' startNumber
+  while [ $startNumber -le 0 ]; do
+    read -p 'Invalid starting number. Select a starting number: ' startNumber
+  done
 fi
 
 # backup current directory's files, excluding this script, if they don't already exist.
@@ -63,9 +72,9 @@ if [ ! -d "../$dirBackup" ]; then
   fi
 fi
 
-# system N: rename files by prepending with user input & appending number incrementally starting from the number 001.
+# TODO: system N: rename files by prepending with user input & appending number incrementally starting from specified start number.
 if [ $system = 'N' ]; then
-  a=1
+  a=$startNumber
   for i in *.*; do
     # don't include script file in renaming
     if [ $i = $thisFileName ]; then
