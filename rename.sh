@@ -1,18 +1,18 @@
 #!/bin/bash
 
-# get text to prepend to each file from user then format text.
+# get input to be prepended to each file from user then format.
 read -p 'Enter text to prepend to files: ' text
 textModified=${text//[ ]/_}
 
-# get valid renaming system choice from user (otherwise keep asking until valid).
-read -p "Select renumbering system to append to files. Enter either 'N' or 'T': " systemRaw
+# get valid numbering system choice from user (otherwise keep asking until valid).
+read -p "Select numbering system to append to files. Choose either increment based ('N') or date/time based ('T'): " systemRaw
 system=$(echo "$systemRaw" | tr '[:lower:]' '[:upper:]') # https://stackoverflow.com/questions/11392189/
 while [ $system != 'N' ] && [ $system != 'T' ]; do
-  read -p "Renumbering system choice not recognised. Enter either 'N' or 'T' as renumbering system: " systemRaw
+  read -p "Numbering system choice not recognised. Enter either 'N' or 'T' to select a numbering system: " systemRaw
   system=$(echo "$systemRaw" | tr '[:lower:]' '[:upper:]')
 done
 
-# when using system N get a valid start number from user (otherwise keep asking until valid).
+# if increment based numbering chosen get a valid start number from user (otherwise keep asking until valid).
 if [ $system = 'N' ]; then
   declare -i startNumber
   read -p 'Enter a starting number: ' startNumber
@@ -24,7 +24,6 @@ fi
 # backup current directory's files, excluding this script, if they don't already exist.
 dir=${PWD##*/}
 dirBackup="${dir}_backup"
-# get script filename then remove quotation marks from string
 thisFileName="$(basename \"$0\")"
 thisFileName="${thisFileName%\"}"
 thisFileName="${thisFileName#\"}"
@@ -41,7 +40,6 @@ if [ ! -d "../$dirBackup" ]; then
       cd ../$dirBackup
       fsTotal=0
     else
-      # filesize of this script
       fsTotal=-$(stat -f %z $thisFileName)
     fi
     for i in *.*; do
@@ -56,16 +54,15 @@ if [ ! -d "../$dirBackup" ]; then
 
   # fail if filesizes of current and backup directories differ.
   if [ ${fsTotalArray[0]} -ne ${fsTotalArray[1]} ]; then
-    echo "Failed."
+    echo "Renaming of files failed. Sorry."
     exit 1
   fi
 fi
 
-# system N: rename files by prepending with user input & appending number incrementally starting from specified start number.
+# rename files using either increment based numbering or date/time based numbering.
 if [ $system = 'N' ]; then
   a=$startNumber
   for i in *.*; do
-    # don't include script file in renaming
     if [ $i = $thisFileName ]; then
       continue
     fi
@@ -74,10 +71,8 @@ if [ $system = 'N' ]; then
     mv -i -- "$i" "${textModified}_$num.$ext"
     let a=a+1
   done
-# system T: rename files by prepending with user input & appending individual file's creation date/time. Note file's last modification date/time is used, which will be the same as its creation date/time if the file hasn't been edited).
 elif [ $system = 'T' ]; then
   for f in *.*; do
-    # don't include script file in renaming
     if [ $f = $thisFileName ]; then
       continue
     fi
