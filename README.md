@@ -1,5 +1,5 @@
 # rename
-Renames all files within a single directory to a combination of text portion that is prepended and number portion that is appended to each file (e.g. nhowlett_cat_001.JPG). This program was developed to help me organise my digital photographs.
+Renames all files within a single directory to a combination of user-supplied portion that is prepended and number portion that is appended to each file (e.g. nhowlett_cat_001.JPG). This program was developed to help me organise my digital photographs.
 
 The prepended portion is specified once by you the user (and is the same for all files), while the appended number portion is unique to each file. The numbered portion can either be increment based (e.g. 001.txt, 002.txt, 003.txt, etc) or file creation date/time based (e.g. 20190130-124500.txt, 20190130-125000.txt, 20190130-125500.txt, etc). Please refer to the User guide for more details.
 
